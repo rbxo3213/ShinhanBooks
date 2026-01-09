@@ -270,6 +270,31 @@ export const ReadingGroups: React.FC<ReadingGroupsProps> = ({ groups, currentUse
         setPostTitle(''); setPostContent(''); setPostImages([]); setPostBook(undefined);
     };
 
+    // --- Handlers: Comment Creation ---
+    const handleCommentSubmit = () => {
+        if (!commentContent.trim()) return;
+        if (!currentUser) return alert('로그인이 필요합니다.');
+        if (!selectedPost) return;
+
+        const newComment: ReadingGroupComment = {
+            id: Date.now().toString(),
+            postId: selectedPost.id,
+            authorId: currentUser.id,
+            authorName: currentUser.nickname,
+            content: commentContent,
+            createdAt: Date.now()
+        };
+
+        setComments(prev => [...prev, newComment]);
+        
+        // Update local post state for immediate feedback
+        const updatedPost = { ...selectedPost, commentCount: selectedPost.commentCount + 1 };
+        setSelectedPost(updatedPost);
+        setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
+        
+        setCommentContent('');
+    };
+
     // --- Render Functions ---
 
     // 1. Post Create View
@@ -805,21 +830,116 @@ export const ReadingGroups: React.FC<ReadingGroupsProps> = ({ groups, currentUse
 
     if (internalView === 'POST_CREATE') return renderPostCreate();
     if (internalView === 'POST_DETAIL' && selectedPost) {
-        // Reuse existing Post Detail logic... (omitted for brevity, assume strictly same logic as before but with selectedGroup context)
-        // For simplicity in this demo, let's just return a placeholder or copy the previous renderPostDetail if needed.
-        // Copying essential parts:
         return (
-            <div className="max-w-3xl mx-auto bg-white min-h-[800px] border border-gray-200 shadow-sm rounded-xl overflow-hidden flex flex-col">
-                <div className="p-4 border-b border-gray-100 flex items-center gap-3 sticky top-0 bg-white z-10">
+            <div className="max-w-3xl mx-auto bg-white h-[800px] border border-gray-200 shadow-sm rounded-xl overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-white z-10 shrink-0">
                     <button onClick={() => setInternalView('GROUP_DETAIL')} className="p-2 hover:bg-gray-100 rounded-full transition">
                         <ChevronLeft className="w-6 h-6 text-gray-600" />
                     </button>
                     <h2 className="text-lg font-bold text-gray-900 truncate flex-1">{selectedGroup?.name}</h2>
                 </div>
-                <div className="p-6 overflow-y-auto flex-1">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">{selectedPost.title}</h1>
-                    <div className="text-gray-800 leading-relaxed whitespace-pre-wrap mb-6 text-base">{selectedPost.content}</div>
-                    {/* ... (Rest of post detail UI) ... */}
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-0">
+                    <div className="p-6 pb-0">
+                        {/* Title & Author */}
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">{selectedPost.title}</h1>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span className="font-bold text-gray-700">{selectedPost.authorName}</span>
+                                <span>·</span>
+                                <span>{formatTime(selectedPost.createdAt)}</span>
+                                <span>·</span>
+                                <span>조회 {selectedPost.viewCount}</span>
+                            </div>
+                        </div>
+
+                        {/* Content Body */}
+                        <div className="text-gray-800 leading-relaxed whitespace-pre-wrap mb-8 text-base">
+                            {selectedPost.content}
+                        </div>
+
+                        {/* Attached Book */}
+                        {selectedPost.attachedBook && (
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl mb-8">
+                                <img src={selectedPost.attachedBook.image} alt="" className="w-16 h-24 object-cover rounded shadow-sm" />
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">함께 읽은 책</p>
+                                    <p className="font-bold text-gray-900">{selectedPost.attachedBook.title}</p>
+                                    <p className="text-sm text-gray-600">{selectedPost.attachedBook.author}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Images */}
+                        {selectedPost.images && selectedPost.images.length > 0 && (
+                            <div className="space-y-4 mb-8">
+                                {selectedPost.images.map((img, i) => (
+                                    <img key={i} src={img} alt="" className="w-full rounded-xl border border-gray-100" />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Like Button */}
+                        <div className="flex justify-center mb-8 border-b border-gray-100 pb-8">
+                            <button className="flex items-center gap-2 px-5 py-2 rounded-full border border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500 hover:bg-red-50 transition">
+                                <Heart className="w-5 h-5" />
+                                <span className="text-sm font-bold">좋아요 {selectedPost.likes}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Comments Section */}
+                    <div className="bg-gray-50 p-6 min-h-[200px]">
+                        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            댓글 <span className="text-primary-600">{postComments.length}</span>
+                        </h3>
+                        
+                        <div className="space-y-4">
+                            {postComments.map(comment => (
+                                <div key={comment.id} className="bg-white p-4 rounded-xl border border-gray-200">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-sm text-gray-900">{comment.authorName}</span>
+                                            {comment.authorId === selectedGroup?.ownerId && (
+                                                <span className="text-[10px] bg-primary-100 text-primary-600 px-1.5 py-0.5 rounded font-bold">모임장</span>
+                                            )}
+                                        </div>
+                                        <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
+                                    </div>
+                                    <p className="text-sm text-gray-800 leading-relaxed">{comment.content}</p>
+                                </div>
+                            ))}
+                            {postComments.length === 0 && (
+                                <p className="text-center text-gray-400 text-sm py-4">첫 댓글을 남겨보세요!</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Comment Input (Fixed Bottom) */}
+                <div className="p-4 bg-white border-t border-gray-200 shrink-0">
+                    <div className="relative">
+                        <input 
+                            value={commentContent}
+                            onChange={(e) => setCommentContent(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit()}
+                            placeholder="댓글을 입력하세요..."
+                            className="w-full pl-4 pr-12 py-3 bg-gray-100 border-none rounded-full focus:ring-2 focus:ring-primary-100 focus:bg-white transition outline-none text-sm"
+                        />
+                        <button 
+                            onClick={handleCommentSubmit}
+                            disabled={!commentContent.trim()}
+                            className={`absolute right-1.5 top-1.5 p-1.5 rounded-full transition-all ${
+                                commentContent.trim() 
+                                ? 'bg-primary-600 text-white shadow-md hover:bg-primary-700' 
+                                : 'bg-gray-300 text-white cursor-not-allowed'
+                            }`}
+                        >
+                            <Send className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
         );
