@@ -352,6 +352,7 @@ const App = () => {
             books={books} 
             onBookClick={handleBookClick} 
             searchQuery={searchQuery} 
+            onSearch={setSearchQuery}
             user={user}
             onToggleWishlist={handleToggleWishlist}
             setView={setView}

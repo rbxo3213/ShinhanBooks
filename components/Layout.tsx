@@ -9,7 +9,6 @@ interface LayoutProps {
   setView: (view: AppView) => void;
   authStatus: AuthStatus;
   user: User | null;
-  onSearch: (query: string) => void;
   notifications?: Notification[];
   onNotificationClick?: (notification: Notification) => void;
   onMarkAllRead?: () => void;
@@ -21,7 +20,6 @@ export const Layout: React.FC<LayoutProps> = ({
     setView, 
     authStatus, 
     user, 
-    onSearch,
     notifications = [],
     onNotificationClick,
     onMarkAllRead
@@ -68,18 +66,8 @@ export const Layout: React.FC<LayoutProps> = ({
             </div>
           </div>
 
-          {/* Search Bar - Expanded */}
-          <div className="hidden md:flex flex-1 max-w-2xl relative">
-            <input 
-              type="text" 
-              onChange={(e) => onSearch(e.target.value)}
-              placeholder="찾고 싶은 도서나 저자를 검색해보세요" 
-              className="w-full pl-5 pr-14 py-3 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all text-sm placeholder-gray-400 shadow-sm"
-            />
-            <button className="absolute right-2 top-1.5 h-9 w-9 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition">
-              <Search className="w-4 h-4" />
-            </button>
-          </div>
+          {/* Spacer to push Nav to right */}
+          <div className="flex-1"></div>
 
           {/* Navigation Actions */}
           <nav className="flex items-center gap-4 ml-8">

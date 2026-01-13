@@ -2,18 +2,19 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Book, User, AppView, ResellState } from '../types';
 import { CATEGORIES } from '../constants';
-import { MapPin, Heart, ChevronLeft, ChevronRight, Sparkles, ShieldCheck, BookOpen, ChevronDown, Check, Filter, ShoppingBag, LayoutGrid } from 'lucide-react';
+import { MapPin, Heart, ChevronLeft, ChevronRight, Sparkles, ShieldCheck, BookOpen, ChevronDown, Check, Filter, ShoppingBag, LayoutGrid, Search } from 'lucide-react';
 
 interface HomeProps {
   books: Book[];
   onBookClick: (book: Book) => void;
   searchQuery: string;
+  onSearch: (query: string) => void;
   user: User | null;
   onToggleWishlist: (bookId: string) => void;
   setView: (view: AppView) => void;
 }
 
-export const Home: React.FC<HomeProps> = ({ books, onBookClick, searchQuery, user, onToggleWishlist, setView }) => {
+export const Home: React.FC<HomeProps> = ({ books, onBookClick, searchQuery, onSearch, user, onToggleWishlist, setView }) => {
   const [sortBy, setSortBy] = useState<'newest' | 'priceAsc' | 'likes'>('newest');
   const [selectedCondition, setSelectedCondition] = useState<'All' | 'New' | 'Like New' | 'Good' | 'Fair'>('All');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -188,6 +189,22 @@ export const Home: React.FC<HomeProps> = ({ books, onBookClick, searchQuery, use
          >
             <ChevronRight className="w-6 h-6" />
          </button>
+      </div>
+
+      {/* Search Bar - Sticky */}
+      <div className="sticky top-[72px] z-40 bg-[#F8F9FA] py-4">
+          <div className="relative max-w-3xl mx-auto">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearch(e.target.value)}
+              placeholder="찾고 싶은 도서나 저자를 검색해보세요"
+              className="w-full pl-6 pr-14 py-4 bg-white border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition-all text-base placeholder-gray-400 shadow-md"
+            />
+            <button className="absolute right-2 top-2 h-10 w-10 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition">
+              <Search className="w-5 h-5" />
+            </button>
+          </div>
       </div>
 
       <div className="flex flex-col gap-6">
